@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <description>dubbo服务提供者配置</description>
+
+    <!--1. 配置服务提供者项目名称，可以随意，但是要唯一-->
+    <dubbo:application name="export_stat_service"/>
+
+    <!--2. 注册中心的配置: 基于zookeeper的注册中心-->
+    <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
+
+    <!--3. 配置远程通讯的协议，以及服务端开放的服务调用端口-->
+    <dubbo:protocol name="dubbo" port="20886"/>
+
+    <!--4. 开启dubbo的注解扫描, 扫描的是dubbo提供的@Service注解。-->
+    <dubbo:annotation package="cn.itcast.service"/>
+</beans>

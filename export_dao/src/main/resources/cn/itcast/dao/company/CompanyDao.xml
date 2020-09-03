@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--namespace 指定对哪个接口进行映射，这里要指定接口全路径-->
+<mapper namespace="cn.itcast.dao.company.CompanyDao">
+
+    <!--resultMap 当查询列与对象属性不一致，使用此标签建立映射关系-->
+    <resultMap id="BaseResultMap" type="cn.itcast.domain.company.Company">
+        <result column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="expiration_date" property="expirationDate"/>
+        <result column="address" property="address"/>
+        <result column="license_id" property="licenseId"/>
+        <result column="representative" property="representative"/>
+        <result column="phone" property="phone"/>
+        <result column="company_size" property="companySize"/>
+        <result column="industry" property="industry"/>
+        <result column="remarks" property="remarks"/>
+        <result column="state" property="state"/>
+        <result column="balance" property="balance"/>
+    </resultMap>
+
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM ss_company
+    </select>
+
+    <!--parameterType可以省略-->
+    <!--注意：id必须要设置值。因为添加操作页面没有id值，所以记得在service中设置uuid作为主键-->
+    <insert id="save" parameterType="cn.itcast.domain.company.Company">
+        insert into ss_company
+        (
+            id,
+            name,
+            expiration_date,
+            address,
+            license_id,
+            representative,
+            phone,
+            company_size,
+            industry,
+            remarks,
+            state,
+            balance,
+            city
+        )
+        VALUES
+        (
+            #{id},
+            #{name},
+            #{expirationDate},
+            #{address},
+            #{licenseId},
+            #{representative},
+            #{phone},
+            #{companySize},
+            #{industry},
+            #{remarks},
+            #{state},
+            #{balance},
+            #{city}
+        )
+    </insert>
+
+    <update id="update">
+        update ss_company
+        SET
+            name=#{name},
+            expiration_date=#{expirationDate},
+            address=#{address},
+            license_id=#{licenseId},
+            representative=#{representative},
+            phone=#{phone},
+            company_size=#{companySize},
+            industry=#{industry},
+            remarks=#{remarks},
+            state=#{state},
+            balance=#{balance},
+            city=#{city}
+        where id=#{id}
+    </update>
+
+    <select id="findById" resultMap="BaseResultMap">
+        select * from ss_company where id=#{id}
+    </select>
+
+    <delete id="delete">
+        delete from ss_company where id=#{id}
+    </delete>
+
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--1. 创建任务类-->
+    <bean id="myTask" class="cn.itcast.web.task.MyTask"/>
+
+    <!--2. 创建任务调度工厂，注入任务类、任务方法-->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject" ref="myTask"/>
+        <property name="targetMethod" value="execute"/>
+    </bean>
+
+    <!--3. 创建任务调度触发器，注入任务工厂、任务调度表达式-->
+    <bean id="trigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="jobDetail"/>
+        <!--注入调度表达式： 秒  分钟  小时  日  月  周  年  (周与日必须有一个是问号，要不然会冲突)-->
+        <property name="cronExpression" value="0/5 * * * * ?"/>
+    </bean>
+
+    <!--4. 创建任务执行计划，注入任务调度触发器-->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <array>
+                <!--注入任务调度触发器-->
+                <ref bean="trigger"/>
+            </array>
+        </property>
+    </bean>
+</beans>

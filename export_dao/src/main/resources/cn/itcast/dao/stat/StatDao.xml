@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.itcast.dao.stat.StatDao">
+
+    <!--注意：要指定方法返回的集合元素类型是map-->
+    <select id="factorySale" resultType="map">
+        SELECT p.name,SUM(p.value) `value` FROM (
+            SELECT
+              cp.factory_name `name`,
+              SUM(cp.amount) `value`
+            FROM co_contract_product cp
+            WHERE cp.factory_name IS NOT NULL
+            GROUP BY cp.factory_name
+            UNION ALL
+            SELECT
+              ext.factory_name `name`,
+              SUM(ext.amount) `value`
+            FROM co_ext_cproduct ext
+            WHERE ext.factory_name IS NOT NULL
+            GROUP BY ext.factory_name
+        ) p GROUP BY p.name
+    </select>
+
+    <select id="productSale" resultType="map">
+        SELECT cp.product_no `name`,SUM(cp.amount) `value`
+        FROM co_contract_product cp
+        WHERE product_no IS NOT NULL AND product_no != ''
+        GROUP BY cp.product_no
+        ORDER BY `value` DESC
+        LIMIT 5
+    </select>
+
+    <select id="online" resultType="map">
+        SELECT s.a1 `name`,IFNULL(p.num,0) `value` FROM st_online_info s
+        LEFT JOIN (
+        SELECT DATE_FORMAT(TIME,'%H') h,COUNT(*) num FROM st_sys_log GROUP BY DATE_FORMAT(TIME,'%H')
+        ) p ON s.a1=p.h
+    </select>
+</mapper>

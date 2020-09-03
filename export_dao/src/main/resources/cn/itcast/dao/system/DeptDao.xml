@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<!--namespace 指定对哪个接口进行映射，这里要指定接口全路径-->
+<mapper namespace="cn.itcast.dao.system.DeptDao">
+    <!--resultMap 当查询列与对象属性不一致，使用此标签建立映射关系-->
+    <resultMap id="BaseResultMap" type="cn.itcast.domain.system.Dept">
+        <result column="dept_id" property="id"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="state" property="state"/>
+        <result column="company_id" property="companyId"/>
+        <result column="company_name" property="companyName"/>
+
+        <association property="parent"
+                     column="parent_id"
+                     javaType="cn.itcast.domain.system.Dept"
+                     select="cn.itcast.dao.system.DeptDao.findById"
+        />
+    </resultMap>
+
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT * FROM pe_dept WHERE company_id=#{companyId}
+    </select>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT * FROM pe_dept where dept_id=#{deptId}
+    </select>
+
+
+    <insert id="save">
+        insert into pe_dept(dept_id,dept_name,state,company_id,company_name,parent_id)
+        values(#{id},#{deptName},#{state},#{companyId},#{companyName},
+            <choose>
+                <when test="parent != null and parent.id != ''">#{parent.id}</when>
+                <otherwise>NULL</otherwise>
+            </choose>
+        )
+    </insert>
+
+    <update id="update">
+        update
+          pe_dept
+        set
+          dept_name=#{deptName},
+          state=#{state},
+          company_id=#{companyId},
+          company_name=#{companyName},
+          parent_id=
+          <choose>
+              <when test="parent != null and parent.id != ''">#{parent.id}</when>
+              <otherwise>NULL</otherwise>
+          </choose>
+        where dept_id=#{id}
+    </update>
+
+    <!--注意：一定要指定方法返回的结果类型-->
+    <select id="findByParent" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM pe_dept WHERE parent_id=#{id}
+    </select>
+
+    <delete id="delete">
+        DELETE FROM pe_dept WHERE dept_id=#{id}
+    </delete>
+
+</mapper>

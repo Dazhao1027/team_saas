@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+    <!--1. 注解扫描-->
+    <context:component-scan base-package="cn.itcast.web"/>
+    <!--2. 视图解析器-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/pages/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+    <!--3. 注解驱动-->
+    <mvc:annotation-driven conversion-service="conversionServiceFactory"/>
+    <!--4. 放行静态资源的访问-->
+    <mvc:default-servlet-handler/>
+    <!--5. 配置转换器工厂-->
+    <bean id="conversionServiceFactory" class="org.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters">
+            <set>
+                <ref bean="stringToDateConverter"/>
+            </set>
+        </property>
+    </bean>
+    <!--6. 开启Aop自动代理支持-->
+    <aop:aspectj-autoproxy/>
+
+    <!--配置文件上传解析器，解析器的id是固定-->
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!--SpEL表达式，计算结果-->
+        <property name="maxUploadSize" value="#{10*1024*1024}"/>
+    </bean>
+
+    <!--加载七牛云配置文件-->
+    <context:property-placeholder location="classpath:properties/qiniu.properties"/>
+
+
+    <!--7. dubbo服务消费者配置-->
+    <!--7.1 服务消费者项目名称-->
+    <dubbo:application name="export_web_manager"/>
+    <!--7.2 配置注册中心地址-->
+    <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
+    <!--7.3 配置注解扫描(可以扫描到@Reference注解)-->
+    <dubbo:annotation package="cn.itcast.web"/>
+    <!--启动服务消费者时候不检查服务提供者是否存在。如果没有服务提供者不会报错，但是用的时候肯定报错。-->
+    <dubbo:consumer check="false"/>
+
+</beans>
