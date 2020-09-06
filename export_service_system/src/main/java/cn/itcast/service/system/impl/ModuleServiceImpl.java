@@ -5,11 +5,18 @@ import cn.itcast.dao.system.UserDao;
 import cn.itcast.domain.system.Module;
 import cn.itcast.domain.system.User;
 import cn.itcast.service.system.ModuleService;
+import cn.itcast.service.util.JedisUtils;
+import cn.itcast.service.util.JsonUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
+import redis.clients.jedis.Jedis;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -36,30 +43,69 @@ public class ModuleServiceImpl implements ModuleService {
 
     @Override
     public List<Module> findAll() {
-        return moduleDao.findAll();
+
+        try {
+            Jedis jedis = JedisUtils.getJedis();
+            String jsonData = jedis.get("models");
+
+            if (jsonData==null || jsonData.equals("{}")){
+                List<Module> moduleList = moduleDao.findAll();
+
+                jsonData = new ObjectMapper().writeValueAsString(moduleList);
+                jedis.set("models",jsonData);
+                jedis.close();
+//                return moduleList;
+            }
+            return JsonUtils.jsonToList(jsonData, Module.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void save(Module module) {
         // 设置主键
         module.setId(UUID.randomUUID().toString());
+
+        Jedis jedis = JedisUtils.getJedis();
+        jedis.del("models");
+        jedis.close();
         moduleDao.save(module);
+
     }
 
     @Override
     public void update(Module module) {
+        Jedis jedis = JedisUtils.getJedis();
+        jedis.del("models");
+        jedis.close();
         moduleDao.update(module);
     }
 
     @Override
     public void delete(String id) {
+        Jedis jedis = JedisUtils.getJedis();
+        jedis.del("models");
+        jedis.close();
         moduleDao.delete(id);
     }
 
     @Override
     public List<Module> findModuleByRoleId(String roleId) {
-        return moduleDao.findModuleByRoleId(roleId);
+
+        Jedis jedis = JedisUtils.getJedis();
+        String modelData = jedis.get(roleId);
+
+        if (modelData==null ||modelData.equals("{}")){
+            List<Module> moduleList = moduleDao.findModuleByRoleId(roleId);
+            modelData = JsonUtils.objectToJson(moduleList);
+            jedis.set(roleId,modelData);
+            jedis.close();
+        }
+//        return moduleDao.findModuleByRoleId(roleId);
+        return JsonUtils.jsonToList(modelData, Module.class);
     }
+
 
     @Autowired
     private UserDao userDao;

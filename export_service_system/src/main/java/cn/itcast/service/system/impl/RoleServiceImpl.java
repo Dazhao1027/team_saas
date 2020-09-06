@@ -3,11 +3,13 @@ package cn.itcast.service.system.impl;
 import cn.itcast.dao.system.RoleDao;
 import cn.itcast.domain.system.Role;
 import cn.itcast.service.system.RoleService;
+import cn.itcast.service.util.JedisUtils;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import redis.clients.jedis.Jedis;
 
 import java.util.List;
 import java.util.UUID;
@@ -65,6 +67,10 @@ public class RoleServiceImpl implements RoleService {
             String[] array = moduleIds.split(",");
             if (array != null && array.length>0){
                 for (String moduleId : array) {
+                    Jedis jedis = JedisUtils.getJedis();
+                    jedis.del(roleId);
+                    jedis.del("models");
+                    jedis.close();
                     roleDao.saveRoleModule(roleId,moduleId);
                 }
             }
