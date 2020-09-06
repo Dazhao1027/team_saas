@@ -11,12 +11,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Date;
 
 @Controller
 @RequestMapping("/cargo/contract")
-public class ContractController extends BaseController{
+public class ContractController extends BaseController {
 
     // 注入dubbo接口代理对象
     @Reference
@@ -44,19 +45,17 @@ public class ContractController extends BaseController{
          */
         User loginUser = getLoginUser();
         PageInfo<Contract> pageInfo = null;
-        if (loginUser.getDegree() == 4){
+        if (loginUser.getDegree() == 4) {
             // SELECT * FROM co_contract WHERE create_by='登陆用户的id'
             criteria.andCreateByEqualTo(loginUser.getId());
-            pageInfo = contractService.findByPage(example,pageNum,pageSize);
-        }
-        else if (loginUser.getDegree() == 3){
+            pageInfo = contractService.findByPage(example, pageNum, pageSize);
+        } else if (loginUser.getDegree() == 3) {
             // SELECT * FROM co_contract WHERE create_dept='登陆用户的部门id'
             criteria.andCreateDeptEqualTo(loginUser.getDeptId());
-            pageInfo = contractService.findByPage(example,pageNum,pageSize);
-        }
-        else if (loginUser.getDegree() == 2) {
+            pageInfo = contractService.findByPage(example, pageNum, pageSize);
+        } else if (loginUser.getDegree() == 2) {
             // SELECT * FROM co_contract WHERE FIND_IN_SET(create_dept,getDeptChild('100'))
-            pageInfo = contractService.findByDeptId(loginUser.getDeptId(),pageNum,pageSize);
+            pageInfo = contractService.findByDeptId(loginUser.getDeptId(), pageNum, pageSize);
         }
 
         // 保存结果
@@ -103,9 +102,9 @@ public class ContractController extends BaseController{
      * 3. 修改 进入修改页面
      */
     @RequestMapping("/toUpdate")
-    public String toUpdate(String id){
+    public String toUpdate(String id) {
         Contract contract = contractService.findById(id);
-        request.setAttribute("contract",contract);
+        request.setAttribute("contract", contract);
         return "cargo/contract/contract-update";
     }
 
@@ -113,9 +112,15 @@ public class ContractController extends BaseController{
      * 4. 删除
      */
     @RequestMapping("/delete")
-    public String delete(String id){
-        contractService.delete(id);
-        return "redirect:/cargo/contract/list";
+    @ResponseBody
+    public String delete(String id) {
+        final Integer normalState = 0;
+        Integer state = contractService.findById(id).getState();
+        if (state.equals(normalState)) {
+            contractService.delete(id);
+            return "ok";
+        }
+        return "error";
     }
 
     /**
@@ -123,7 +128,7 @@ public class ContractController extends BaseController{
      * http://localhost:8080/cargo/contract/submit.do?id=1
      */
     @RequestMapping("/submit")
-    public String submit(String id){
+    public String submit(String id) {
         // 修改购销合同状态
         Contract contract = new Contract();
         // 修改条件
@@ -134,12 +139,13 @@ public class ContractController extends BaseController{
         contractService.update(contract);
         return "redirect:/cargo/contract/list";
     }
+
     /**
      * 5. 取消：把购销合同状态改为0
      * http://localhost:8080/cargo/contract/cancel.do?id=1
      */
     @RequestMapping("/cancel")
-    public String cancel(String id){
+    public String cancel(String id) {
         // 修改购销合同状态
         Contract contract = new Contract();
         // 修改条件
@@ -156,9 +162,9 @@ public class ContractController extends BaseController{
      * http://localhost:8080/cargo/contract/cancel.do?id=1
      */
     @RequestMapping("/toView")
-    public String toView(String id){
+    public String toView(String id) {
         Contract contract = contractService.findById(id);
-        request.setAttribute("contract",contract);
+        request.setAttribute("contract", contract);
         return "cargo/contract/contract-view";
     }
 }
