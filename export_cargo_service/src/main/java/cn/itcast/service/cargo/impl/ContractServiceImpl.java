@@ -53,6 +53,7 @@ public class ContractServiceImpl implements ContractService {
         //4. 设置购销合同的货物数量、附件数量
         contract.setProNum(0);
         contract.setExtNum(0);
+        contract.setState(0);
         contractDao.insertSelective(contract);
     }
 
@@ -63,15 +64,22 @@ public class ContractServiceImpl implements ContractService {
         example.createCriteria().andContractIdEqualTo(contract.getId());
         //遍历删除
         List<ContractProduct> contractProductList = contractProductDao.selectByExample(example);
-        for (ContractProduct contractProduct : contractProductList) {
-            //根据货物查询附件
-            List<ExtCproduct> extCproducts = contractProduct.getExtCproducts();
-            for (ExtCproduct extCproduct : extCproducts) {
+        if (contractProductList !=null && contractProductList.size()>0) {
+            for (ContractProduct contractProduct : contractProductList) {
+                //根据id删除货物
+                contractProductDao.deleteByPrimaryKey(contractProduct.getId());
+            }
+        }
+
+        //查询附件
+        ExtCproductExample extCproductExample = new ExtCproductExample();
+        extCproductExample.createCriteria().andContractIdEqualTo(contract.getId());
+        List<ExtCproduct> extCproductList = extCproductDao.selectByExample(extCproductExample);
+        if (extCproductList !=null && extCproductList.size()>0) {
+            for (ExtCproduct extCproduct : extCproductList) {
                 //根据id删除附件
                 extCproductDao.deleteByPrimaryKey(extCproduct.getId());
             }
-            //根据id删除货物
-            contractProductDao.deleteByPrimaryKey(contractProduct.getId());
         }
         //根据id删除合同
         contractDao.updateByPrimaryKeySelective(contract);
